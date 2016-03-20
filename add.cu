@@ -1,10 +1,10 @@
 // #include <stdio.h>
 
-#define BLOCKS_COUNT 512
+#define THREADS_COUNT 512
 
 __global__ void add(int *numberOne, int *numberTwo, int *addition)
 {
-    addition[blockIdx.x] = numberOne[blockIdx.x] + numberTwo[blockIdx.x];
+    addition[threadIdx.x] = numberOne[threadIdx.x] + numberTwo[threadIdx.x];
 }
 
 void random_ints(int* dest, int count)
@@ -25,7 +25,7 @@ int main(void)
     int *device_numberOne, *device_numberTwo, *device_addition;
 
     // Size of variable per block
-    int size = BLOCKS_COUNT * sizeof(int);
+    int size = THREADS_COUNT * sizeof(int);
 
     // int counter = 0;
 
@@ -36,10 +36,10 @@ int main(void)
 
     // Initialize host variables;
     host_numberOne = (int *)malloc(size);
-    random_ints(host_numberOne, BLOCKS_COUNT);
+    random_ints(host_numberOne, THREADS_COUNT);
 
     host_numberTwo = (int *)malloc(size);
-    random_ints(host_numberTwo, BLOCKS_COUNT);
+    random_ints(host_numberTwo, THREADS_COUNT);
 
     host_addition = (int *)malloc(size);
 
@@ -48,12 +48,12 @@ int main(void)
     cudaMemcpy(device_numberTwo, host_numberTwo, size, cudaMemcpyHostToDevice);
 
     // Invoke add kernel.
-    add<<<BLOCKS_COUNT, 1>>>(device_numberOne, device_numberTwo, device_addition);
+    add<<<1, THREADS_COUNT>>>(device_numberOne, device_numberTwo, device_addition);
 
     // Copy device variable to host memory.
     cudaMemcpy(host_addition, device_addition, size, cudaMemcpyDeviceToHost);
 
-    // for(counter = 0; counter < BLOCKS_COUNT; ++counter)
+    // for(counter = 0; counter < THREADS_COUNT; ++counter)
     // {
     //     printf("%d\t+ %d\t= %d\n", host_numberOne[counter], host_numberTwo[counter], host_addition[counter]);
     // }
